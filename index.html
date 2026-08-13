@@ -171,6 +171,13 @@
   .tab-btn.active{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
 
   #logView{ display:none; }
+  .log-filter{ display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+  .log-filter select{
+    flex:1; min-width:140px; border:1.5px solid var(--line); border-radius:8px;
+    padding:9px 12px; font-size:13.5px; font-family:inherit; background:#FDFCF9; color:var(--ink);
+  }
+  .log-filter select:focus{ outline:none; border-color:var(--ink); }
+  .log-count{ font-size:12px; color:var(--ink-2); opacity:0.65; margin-bottom:12px; }
   .log-empty{ text-align:center; padding:40px 20px; color:var(--ink-2); opacity:0.7; font-size:14px; }
   .log-loading{ text-align:center; padding:40px 20px; color:var(--ink-2); opacity:0.7; font-size:14px; }
   .log-item{
@@ -287,6 +294,23 @@
     <button id="newReportBtn" data-i18n="newReportBtn">แจ้งรายงานใหม่</button>
   </div>
 
+  <div class="log-filter" id="logFilter" style="display:none;">
+    <select id="filterType">
+      <option value="" data-i18n="filterAllType">ทุกประเภท</option>
+      <option value="บัค" data-i18n="typeBug">บัค / ระบบขัดข้อง</option>
+      <option value="UX/UI" data-i18n="typeUx">ปัญหา UX / UI</option>
+      <option value="คลิกผิดพลาด" data-i18n="typeClick">คลิกผิดพลาด</option>
+      <option value="ภาษา" data-i18n="typeLang">ภาษา / คำผิด</option>
+    </select>
+    <select id="filterStatus">
+      <option value="" data-i18n="filterAllStatus">ทุกสถานะ</option>
+      <option value="ใหม่" data-i18n="statusNew">ใหม่</option>
+      <option value="กำลังดำเนินการ" data-i18n="statusProgress">กำลังดำเนินการ</option>
+      <option value="แก้ไขแล้ว" data-i18n="statusDone">แก้ไขแล้ว</option>
+    </select>
+  </div>
+  <p class="log-count" id="logCount" style="display:none;"></p>
+
   <div id="logView"></div>
 
 </div>
@@ -314,7 +338,10 @@ const I18N = {
     newReportBtn: "แจ้งรายงานใหม่",
     submitFail: "ส่งไม่สำเร็จ กรุณาลองใหม่",
     logLoading: "กำลังโหลดรายงาน...", logEmpty: "ยังไม่มีรายงาน", logFail: "โหลดรายงานไม่สำเร็จ",
-    maxImgAlert: "แนบได้สูงสุด 5 รูป"
+    maxImgAlert: "แนบได้สูงสุด 5 รูป",
+    filterAllType: "ทุกประเภท", filterAllStatus: "ทุกสถานะ",
+    statusNew: "ใหม่", statusProgress: "กำลังดำเนินการ", statusDone: "แก้ไขแล้ว",
+    logCount: (shown, total) => `แสดง ${shown} จาก ${total} รายการ`
   },
   ja: {
     title: "Report a Bug", stamp: "問題報告",
@@ -333,7 +360,10 @@ const I18N = {
     newReportBtn: "新しい報告を作成",
     submitFail: "送信に失敗しました。もう一度お試しください",
     logLoading: "報告を読み込み中...", logEmpty: "まだ報告はありません", logFail: "報告の読み込みに失敗しました",
-    maxImgAlert: "添付は最大5枚までです"
+    maxImgAlert: "添付は最大5枚までです",
+    filterAllType: "すべての種類", filterAllStatus: "すべてのステータス",
+    statusNew: "新規", statusProgress: "対応中", statusDone: "対応済み",
+    logCount: (shown, total) => `${total}件中${shown}件を表示`
   }
 };
 let currentLang = localStorage.getItem('bugReportLang') || 'th';
@@ -351,8 +381,15 @@ function applyLang(){
   });
   document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === currentLang));
   submitBtn.textContent = dict.submitBtn;
-  if(logLoaded) loadLog(true);
+  if(logLoaded) renderReports();
 }
+
+const TYPE_KEY = { 'บัค': 'typeBug', 'UX/UI': 'typeUx', 'คลิกผิดพลาด': 'typeClick', 'ภาษา': 'typeLang' };
+const SEV_KEY = { 'ต่ำ': 'sevLow', 'ปานกลาง': 'sevMid', 'สูง': 'sevHigh' };
+const STATUS_KEY = { 'ใหม่': 'statusNew', 'กำลังดำเนินการ': 'statusProgress', 'แก้ไขแล้ว': 'statusDone' };
+function trType(v){ const k = TYPE_KEY[v]; return k ? I18N[currentLang][k] : v; }
+function trSev(v){ const k = SEV_KEY[v]; return k ? I18N[currentLang][k] : v; }
+function trStatus(v){ const k = STATUS_KEY[v]; return k ? I18N[currentLang][k] : v; }
 document.querySelectorAll('.lang-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     currentLang = btn.dataset.lang;
@@ -518,40 +555,77 @@ tabBtns.forEach(btn => {
   });
 });
 
+const logFilter = document.getElementById('logFilter');
+const logCount = document.getElementById('logCount');
+const filterType = document.getElementById('filterType');
+const filterStatus = document.getElementById('filterStatus');
+let allReports = [];
+
 async function loadLog(force) {
   const dict = I18N[currentLang];
-  if (logLoaded && !force) return;
+  if (logLoaded && !force) { renderReports(); return; }
   logView.innerHTML = `<div class="log-loading">${dict.logLoading}</div>`;
+  logFilter.style.display = 'none';
+  logCount.style.display = 'none';
   try {
     const res = await fetch(SCRIPT_URL, { method: 'GET' });
     const result = await res.json();
     if (!result.ok) throw new Error(result.error || dict.logFail);
 
     logLoaded = true;
-    if (!result.reports.length) {
+    allReports = result.reports;
+
+    if (!allReports.length) {
       logView.innerHTML = `<div class="log-empty">${dict.logEmpty}</div>`;
       return;
     }
 
-    logView.innerHTML = result.reports.map(r => `
-      <div class="log-item">
-        <div class="log-item-top">
-          <p class="log-item-title">${escapeHtml(r.title)}</p>
-        </div>
-        <div class="log-badges">
-          <span class="badge-pill badge-type">${escapeHtml(r.type)}</span>
-          ${r.severity ? `<span class="badge-pill badge-sev-${escapeHtml(r.severity)}">${escapeHtml(r.severity)}</span>` : ''}
-          <span class="badge-pill badge-status" data-status="${escapeHtml(r.status)}">${escapeHtml(r.status)}</span>
-        </div>
-        <p class="log-desc">${escapeHtml(r.description)}</p>
-        ${(r.images && r.images.length) ? `<div class="log-imgs">${r.images.map(img => img.imageUrl ? `<img class="log-img" src="${img.imageUrl}" alt="ภาพที่แนบ" loading="lazy" onclick="window.open('${img.driveLink}','_blank')">` : '').join('')}</div>` : ''}
-        <div class="log-meta">${escapeHtml(r.ticketId)} · ${escapeHtml(r.date)}${r.reporter ? ' · ' + escapeHtml(r.reporter) : ''}${r.url ? ' · ' + escapeHtml(r.url) : ''}</div>
-      </div>
-    `).join('');
+    logFilter.style.display = 'flex';
+    logCount.style.display = 'block';
+    renderReports();
   } catch (err) {
     logView.innerHTML = `<div class="log-empty">${dict.logFail}: ${escapeHtml(String(err))}</div>`;
   }
 }
+
+function renderReports(){
+  const dict = I18N[currentLang];
+  if (!logLoaded) return;
+
+  const typeF = filterType.value;
+  const statusF = filterStatus.value;
+  const filtered = allReports.filter(r => {
+    if (typeF && r.type !== typeF) return false;
+    if (statusF && r.status !== statusF) return false;
+    return true;
+  });
+
+  logCount.textContent = dict.logCount(filtered.length, allReports.length);
+
+  if (!filtered.length) {
+    logView.innerHTML = `<div class="log-empty">${dict.logEmpty}</div>`;
+    return;
+  }
+
+  logView.innerHTML = filtered.map(r => `
+    <div class="log-item">
+      <div class="log-item-top">
+        <p class="log-item-title">${escapeHtml(r.title)}</p>
+      </div>
+      <div class="log-badges">
+        <span class="badge-pill badge-type">${escapeHtml(trType(r.type))}</span>
+        ${r.severity ? `<span class="badge-pill badge-sev-${escapeHtml(r.severity)}">${escapeHtml(trSev(r.severity))}</span>` : ''}
+        <span class="badge-pill badge-status" data-status="${escapeHtml(r.status)}">${escapeHtml(trStatus(r.status))}</span>
+      </div>
+      <p class="log-desc">${escapeHtml(r.description)}</p>
+      ${(r.images && r.images.length) ? `<div class="log-imgs">${r.images.map(img => img.imageUrl ? `<img class="log-img" src="${img.imageUrl}" alt="${escapeHtml(dict.imgLabel || '')}" loading="lazy" onclick="window.open('${img.driveLink}','_blank')">` : '').join('')}</div>` : ''}
+      <div class="log-meta">${escapeHtml(r.ticketId)} · ${escapeHtml(r.date)}${r.reporter ? ' · ' + escapeHtml(r.reporter) : ''}${r.url ? ' · ' + escapeHtml(r.url) : ''}</div>
+    </div>
+  `).join('');
+}
+
+filterType.addEventListener('change', renderReports);
+filterStatus.addEventListener('change', renderReports);
 
 function escapeHtml(str){
   const div = document.createElement('div');
