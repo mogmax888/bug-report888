@@ -1,3 +1,6 @@
+
+
+Index · HTML
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -28,7 +31,7 @@
     padding: 40px 16px 80px;
   }
   .wrap{max-width:640px;margin:0 auto;}
-
+ 
   .masthead{
     display:flex; align-items:flex-end; justify-content:space-between;
     margin-bottom:28px; padding-bottom:16px; border-bottom:3px solid var(--ink);
@@ -54,7 +57,7 @@
   }
   .lang-btn.active{ background:var(--ink); color:var(--paper); }
   .sub{color:var(--ink-2); opacity:0.75; font-size:14px; margin:0 0 32px;}
-
+ 
   .ticket{
     background:#fff;
     border:1px solid var(--line);
@@ -69,7 +72,7 @@
   }
   .ticket::before{ left:-10px; }
   .ticket::after{ right:-10px; }
-
+ 
   .field{margin-bottom:22px;}
   label{
     display:block; font-size:13px; font-weight:600; margin-bottom:8px;
@@ -77,7 +80,7 @@
   }
   label .req{ color:var(--coral); margin-left:2px; }
   .hint{font-size:12px; color:var(--ink-2); opacity:0.6; margin-top:6px;}
-
+ 
   input[type=text], input[type=url], textarea, select{
     width:100%; border:1.5px solid var(--line); border-radius:8px;
     padding:11px 13px; font-size:14.5px; font-family:inherit; color:var(--ink);
@@ -87,7 +90,7 @@
     outline:none; border-color:var(--ink); box-shadow:0 0 0 3px rgba(27,35,51,0.08);
   }
   textarea{resize:vertical; min-height:96px; line-height:1.5;}
-
+ 
   .type-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   @media (max-width:480px){ .type-grid{grid-template-columns:1fr;} }
   .type-opt{
@@ -99,7 +102,7 @@
   .type-opt .dot{width:9px;height:9px;border-radius:50%;flex:none;}
   .type-opt.active{ border-color:var(--ink); background:var(--paper-2); }
   .type-opt input{position:absolute; opacity:0; width:0; height:0;}
-
+ 
   .sev-row{display:flex; gap:8px;}
   .sev-opt{
     flex:1; text-align:center; padding:9px 4px; border:1.5px solid var(--line);
@@ -109,7 +112,7 @@
   .sev-opt[data-level="ต่ำ"].active{ background:var(--mint); color:#0d4a37; }
   .sev-opt[data-level="ปานกลาง"].active{ background:var(--amber); color:#4a2f00; }
   .sev-opt[data-level="สูง"].active{ background:var(--coral); color:#fff; }
-
+ 
   .drop{
     border:2px dashed var(--line); border-radius:10px; padding:22px;
     text-align:center; cursor:pointer; transition: all .15s; background:#FDFCF9;
@@ -118,7 +121,7 @@
   .drop p{margin:6px 0 0; font-size:13px; color:var(--ink-2); opacity:0.75;}
   .drop .icon{font-size:22px;}
   .drop.disabled{ opacity:0.5; cursor:not-allowed; }
-
+ 
   #previewGrid{
     margin-top:12px; display:grid; grid-template-columns:repeat(auto-fill, minmax(90px, 1fr)); gap:10px;
   }
@@ -130,7 +133,7 @@
     position:absolute; top:-7px; right:-7px; width:22px; height:22px; border-radius:50%;
     background:var(--ink); color:#fff; border:none; cursor:pointer; font-size:12px; line-height:1;
   }
-
+ 
   .submit-btn{
     width:100%; padding:15px; background:var(--ink); color:var(--paper);
     border:none; border-radius:8px; font-size:15px; font-weight:600;
@@ -139,9 +142,9 @@
   .submit-btn:hover{ background:var(--ink-2); }
   .submit-btn:active{ transform:scale(0.985); }
   .submit-btn:disabled{ opacity:0.55; cursor:not-allowed; }
-
+ 
   .err{ color:var(--coral); font-size:12.5px; margin-top:6px; display:none; }
-
+ 
   .success{
     display:none; text-align:center; padding:50px 20px;
   }
@@ -161,7 +164,7 @@
     background:transparent; border:1.5px solid var(--ink); color:var(--ink);
     padding:10px 20px; border-radius:8px; font-size:13.5px; cursor:pointer; font-weight:500;
   }
-
+ 
   .tabbar{ display:flex; gap:6px; margin-bottom:22px; }
   .tab-btn{
     flex:1; padding:10px; border:1.5px solid var(--line); background:#FDFCF9;
@@ -169,7 +172,7 @@
     font-family:inherit;
   }
   .tab-btn.active{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
-
+ 
   #logView{ display:none; }
   .log-empty{ text-align:center; padding:40px 20px; color:var(--ink-2); opacity:0.7; font-size:14px; }
   .log-loading{ text-align:center; padding:40px 20px; color:var(--ink-2); opacity:0.7; font-size:14px; }
@@ -202,7 +205,7 @@
 </head>
 <body>
 <div class="wrap">
-
+ 
   <div class="masthead">
     <h1 data-i18n="title">Report a Bug</h1>
     <div class="masthead-right">
@@ -214,15 +217,15 @@
     </div>
   </div>
   <p class="sub" data-i18n="sub">พบบัค ปัญหา UX/UI คลิกผิดพลาด หรือภาษาผิดพลาด แจ้งได้ที่นี่ ทีมจะรีบดำเนินการ</p>
-
+ 
   <div class="tabbar">
     <button class="tab-btn active" data-tab="form" data-i18n="tabForm">แจ้งปัญหา</button>
     <button class="tab-btn" data-tab="log" data-i18n="tabLog">ดูรายงานทั้งหมด</button>
   </div>
-
+ 
   <div class="ticket" id="formCard">
     <form id="bugForm">
-
+ 
       <div class="field">
         <label data-i18n="typeLabel">ประเภทปัญหา<span class="req">*</span></label>
         <div class="type-grid" id="typeGrid">
@@ -233,24 +236,24 @@
         </div>
         <p class="err" id="err-type" data-i18n="errType">กรุณาเลือกประเภทปัญหา</p>
       </div>
-
+ 
       <div class="field">
         <label for="title" data-i18n="titleLabel">หัวข้อสั้นๆ<span class="req">*</span></label>
         <input type="text" id="title" data-i18n-placeholder="titlePh" placeholder="เช่น ปุ่มยืนยันกดไม่ได้ในหน้าสมัครงาน">
         <p class="err" id="err-title" data-i18n="errTitle">กรุณากรอกหัวข้อ</p>
       </div>
-
+ 
       <div class="field">
         <label for="desc" data-i18n="descLabel">รายละเอียด<span class="req">*</span></label>
         <textarea id="desc" data-i18n-placeholder="descPh" placeholder="อธิบายว่าเจออะไร ทำอะไรอยู่ตอนนั้น และควรจะเป็นอย่างไร"></textarea>
         <p class="err" id="err-desc" data-i18n="errDesc">กรุณากรอกรายละเอียด</p>
       </div>
-
+ 
       <div class="field">
         <label for="url" data-i18n="urlLabel">หน้าเว็บ / ลิงก์ที่พบปัญหา</label>
         <input type="url" id="url" data-i18n-placeholder="urlPh" placeholder="https://example.com/หน้าที่มีปัญหา">
       </div>
-
+ 
       <div class="field">
         <label data-i18n="sevLabel">ความรุนแรง</label>
         <div class="sev-row" id="sevRow">
@@ -259,12 +262,12 @@
           <div class="sev-opt" data-level="สูง" data-i18n="sevHigh">สูง</div>
         </div>
       </div>
-
+ 
       <div class="field">
         <label for="reporter" data-i18n="reporterLabel">ชื่อผู้แจ้ง (ไม่บังคับ)</label>
         <input type="text" id="reporter" data-i18n-placeholder="reporterPh" placeholder="ไม่ระบุก็ได้">
       </div>
-
+ 
       <div class="field">
         <label data-i18n="imgLabel">แนบภาพหน้าจอ (สูงสุด 5 รูป)</label>
         <div class="drop" id="dropZone">
@@ -274,11 +277,11 @@
         <input type="file" id="fileInput" accept="image/*" multiple style="display:none">
         <div id="previewGrid"></div>
       </div>
-
+ 
       <button type="submit" class="submit-btn" id="submitBtn" data-i18n="submitBtn">ส่งรายงาน</button>
     </form>
   </div>
-
+ 
   <div class="ticket success" id="successCard">
     <div class="badge">✓</div>
     <h2 data-i18n="successTitle">ส่งรายงานเรียบร้อย</h2>
@@ -286,16 +289,16 @@
     <p data-i18n="successBody">ขอบคุณที่ช่วยแจ้งปัญหา ทีมงานจะตรวจสอบเร็วๆ นี้</p>
     <button id="newReportBtn" data-i18n="newReportBtn">แจ้งรายงานใหม่</button>
   </div>
-
+ 
   <div id="logView"></div>
-
+ 
 </div>
-
+ 
 <script>
 // ==== ตั้งค่าตรงนี้: ใส่ URL ที่ได้จากการ Deploy Google Apps Script ====
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbww189XICq1KTubfYtp5XUlOShmeZFc_oxaHZBPVQ57oeT4VfWS6bpT6VjR1jY_KJDg/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzsLU4afs3cx2dUVGNyMVRuisrNz3sVr5Ee8PzqRxMynizVwXBVjaExM_Hb9NgpSHPi/exec";
 // =======================================================================
-
+ 
 const I18N = {
   th: {
     title: "Report a Bug", stamp: "แจ้งปัญหา",
@@ -337,7 +340,7 @@ const I18N = {
   }
 };
 let currentLang = localStorage.getItem('bugReportLang') || 'th';
-
+ 
 function applyLang(){
   const dict = I18N[currentLang];
   document.documentElement.lang = currentLang;
@@ -360,7 +363,7 @@ document.querySelectorAll('.lang-btn').forEach(btn => {
     applyLang();
   });
 });
-
+ 
 const typeGrid = document.getElementById('typeGrid');
 typeGrid.addEventListener('click', (e) => {
   const opt = e.target.closest('.type-opt');
@@ -370,7 +373,7 @@ typeGrid.addEventListener('click', (e) => {
   opt.querySelector('input').checked = true;
   document.getElementById('err-type').style.display = 'none';
 });
-
+ 
 const sevRow = document.getElementById('sevRow');
 let selectedSeverity = 'ปานกลาง';
 sevRow.querySelectorAll('.sev-opt').forEach(el => {
@@ -381,13 +384,13 @@ sevRow.querySelectorAll('.sev-opt').forEach(el => {
     selectedSeverity = el.dataset.level;
   });
 });
-
+ 
 const MAX_IMAGES = 5;
 const dropZone = document.getElementById('dropZone');
 const fileInput = document.getElementById('fileInput');
 const previewGrid = document.getElementById('previewGrid');
 let imagesBase64 = [];
-
+ 
 dropZone.addEventListener('click', () => { if(imagesBase64.length < MAX_IMAGES) fileInput.click(); });
 dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
@@ -400,7 +403,7 @@ fileInput.addEventListener('change', () => {
   if(fileInput.files.length) handleFiles(fileInput.files);
   fileInput.value = '';
 });
-
+ 
 function handleFiles(fileList){
   const files = Array.from(fileList).filter(f => f.type.startsWith('image/'));
   const room = MAX_IMAGES - imagesBase64.length;
@@ -414,7 +417,7 @@ function handleFiles(fileList){
     reader.readAsDataURL(file);
   });
 }
-
+ 
 function renderPreviews(){
   previewGrid.innerHTML = imagesBase64.map((src, i) => `
     <div class="preview-item">
@@ -431,35 +434,35 @@ function renderPreviews(){
   });
   updateDropState();
 }
-
+ 
 function updateDropState(){
   dropZone.classList.toggle('disabled', imagesBase64.length >= MAX_IMAGES);
 }
-
+ 
 const form = document.getElementById('bugForm');
 const submitBtn = document.getElementById('submitBtn');
-
+ 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
   const dict = I18N[currentLang];
-
+ 
   const type = typeGrid.querySelector('input:checked');
   const title = document.getElementById('title').value.trim();
   const desc = document.getElementById('desc').value.trim();
-
+ 
   let valid = true;
   document.getElementById('err-type').style.display = 'none';
   document.getElementById('err-title').style.display = 'none';
   document.getElementById('err-desc').style.display = 'none';
-
+ 
   if(!type){ document.getElementById('err-type').style.display = 'block'; valid = false; }
   if(!title){ document.getElementById('err-title').style.display = 'block'; valid = false; }
   if(!desc){ document.getElementById('err-desc').style.display = 'block'; valid = false; }
   if(!valid) return;
-
+ 
   submitBtn.disabled = true;
   submitBtn.textContent = dict.submitting;
-
+ 
   const payload = {
     type: type.value,
     title: title,
@@ -469,14 +472,14 @@ form.addEventListener('submit', async (e) => {
     reporter: document.getElementById('reporter').value.trim(),
     images: imagesBase64
   };
-
+ 
   try {
     const res = await fetch(SCRIPT_URL, {
       method: 'POST',
       body: JSON.stringify(payload)
     });
     const result = await res.json();
-
+ 
     document.getElementById('formCard').style.display = 'none';
     document.getElementById('successCard').style.display = 'block';
     document.getElementById('ticketIdOut').textContent = result.ticketId || 'ส่งแล้ว';
@@ -486,7 +489,7 @@ form.addEventListener('submit', async (e) => {
     submitBtn.textContent = dict.submitBtn;
   }
 });
-
+ 
 document.getElementById('newReportBtn').addEventListener('click', () => {
   form.reset();
   typeGrid.querySelectorAll('.type-opt').forEach(o => o.classList.remove('active'));
@@ -497,12 +500,12 @@ document.getElementById('newReportBtn').addEventListener('click', () => {
   submitBtn.disabled = false;
   submitBtn.textContent = I18N[currentLang].submitBtn;
 });
-
+ 
 const tabBtns = document.querySelectorAll('.tab-btn');
 const formCard = document.getElementById('formCard');
 const logView = document.getElementById('logView');
 let logLoaded = false;
-
+ 
 tabBtns.forEach(btn => {
   btn.addEventListener('click', () => {
     tabBtns.forEach(b => b.classList.remove('active'));
@@ -517,7 +520,7 @@ tabBtns.forEach(btn => {
     }
   });
 });
-
+ 
 async function loadLog(force) {
   const dict = I18N[currentLang];
   if (logLoaded && !force) return;
@@ -526,13 +529,13 @@ async function loadLog(force) {
     const res = await fetch(SCRIPT_URL, { method: 'GET' });
     const result = await res.json();
     if (!result.ok) throw new Error(result.error || dict.logFail);
-
+ 
     logLoaded = true;
     if (!result.reports.length) {
       logView.innerHTML = `<div class="log-empty">${dict.logEmpty}</div>`;
       return;
     }
-
+ 
     logView.innerHTML = result.reports.map(r => `
       <div class="log-item">
         <div class="log-item-top">
@@ -552,14 +555,23 @@ async function loadLog(force) {
     logView.innerHTML = `<div class="log-empty">${dict.logFail}: ${escapeHtml(String(err))}</div>`;
   }
 }
-
+ 
 function escapeHtml(str){
   const div = document.createElement('div');
   div.textContent = str == null ? '' : str;
   return div.innerHTML;
 }
-
+ 
 applyLang();
 </script>
 </body>
 </html>
+ 
+
+
+
+
+
+
+
+
