@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>รายงานปัญหา / 問題報告</title>
+<style>
+  :root{
+    --ink:#1B2333;
+    --ink-2:#2A3448;
+    --paper:#F6F4EE;
+    --paper-2:#EDE9DE;
+    --amber:#F5A623;
+    --coral:#E85D4E;
+    --mint:#4ECCA3;
+    --line: rgba(27,35,51,0.14);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(27,35,51,0.06) 1px, transparent 0);
+    background-size: 22px 22px;
+    color:var(--ink);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    min-height:100vh;
+    padding: 40px 16px 80px;
+  }
+  .wrap{max-width:640px;margin:0 auto;}
+
+  .masthead{
+    display:flex; align-items:flex-end; justify-content:space-between;
+    margin-bottom:28px; padding-bottom:16px; border-bottom:3px solid var(--ink);
+    gap:12px; flex-wrap:wrap;
+  }
+  .masthead h1{
+    font-family: 'Courier New', monospace;
+    font-size:28px; letter-spacing:-0.5px; margin:0; font-weight:700;
+  }
+  .masthead-right{ display:flex; align-items:center; gap:8px; }
+  .masthead .stamp{
+    font-family:'Courier New', monospace; font-size:11px; letter-spacing:1px;
+    color:var(--ink); background:transparent; border:2px solid var(--ink);
+    border-radius:3px; padding:4px 8px; transform:rotate(-3deg);
+    text-transform:uppercase;
+  }
+  .lang-switch{
+    display:flex; border:1.5px solid var(--ink); border-radius:8px; overflow:hidden;
+  }
+  .lang-btn{
+    border:none; background:#fff; color:var(--ink); padding:7px 12px; font-size:12.5px;
+    font-weight:600; cursor:pointer; font-family:inherit;
+  }
+  .lang-btn.active{ background:var(--ink); color:var(--paper); }
+  .sub{color:var(--ink-2); opacity:0.75; font-size:14px; margin:0 0 32px;}
+
+  .ticket{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:28px 26px;
+    position:relative;
+    box-shadow: 0 1px 0 rgba(27,35,51,0.03);
+  }
+  .ticket::before, .ticket::after{
+    content:""; position:absolute; width:20px; height:20px; background:var(--paper);
+    border-radius:50%; top:50%; transform:translateY(-50%);
+  }
+  .ticket::before{ left:-10px; }
+  .ticket::after{ right:-10px; }
+
+  .field{margin-bottom:22px;}
+  label{
+    display:block; font-size:13px; font-weight:600; margin-bottom:8px;
+    color:var(--ink); letter-spacing:0.2px;
+  }
+  label .req{ color:var(--coral); margin-left:2px; }
+  .hint{font-size:12px; color:var(--ink-2); opacity:0.6; margin-top:6px;}
+
+  input[type=text], input[type=url], textarea, select{
+    width:100%; border:1.5px solid var(--line); border-radius:8px;
+    padding:11px 13px; font-size:14.5px; font-family:inherit; color:var(--ink);
+    background:#FDFCF9; transition: border-color .15s, box-shadow .15s;
+  }
+  input:focus, textarea:focus, select:focus{
+    outline:none; border-color:var(--ink); box-shadow:0 0 0 3px rgba(27,35,51,0.08);
+  }
+  textarea{resize:vertical; min-height:96px; line-height:1.5;}
+
+  .type-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  @media (max-width:480px){ .type-grid{grid-template-columns:1fr;} }
+  .type-opt{
+    border:1.5px solid var(--line); border-radius:8px; padding:12px 14px;
+    cursor:pointer; font-size:13.5px; font-weight:500; display:flex; align-items:center; gap:9px;
+    background:#FDFCF9; transition: all .15s; user-select:none;
+  }
+  .type-opt:hover{border-color:var(--ink);}
+  .type-opt .dot{width:9px;height:9px;border-radius:50%;flex:none;}
+  .type-opt.active{ border-color:var(--ink); background:var(--paper-2); }
+  .type-opt input{position:absolute; opacity:0; width:0; height:0;}
+
+  .sev-row{display:flex; gap:8px;}
+  .sev-opt{
+    flex:1; text-align:center; padding:9px 4px; border:1.5px solid var(--line);
+    border-radius:8px; font-size:13px; cursor:pointer; background:#FDFCF9; transition: all .15s;
+  }
+  .sev-opt.active{ color:#fff; border-color:transparent; }
+  .sev-opt[data-level="ต่ำ"].active{ background:var(--mint); color:#0d4a37; }
+  .sev-opt[data-level="ปานกลาง"].active{ background:var(--amber); color:#4a2f00; }
+  .sev-opt[data-level="สูง"].active{ background:var(--coral); color:#fff; }
+
+  .drop{
+    border:2px dashed var(--line); border-radius:10px; padding:22px;
+    text-align:center; cursor:pointer; transition: all .15s; background:#FDFCF9;
+  }
+  .drop:hover, .drop.dragover{ border-color:var(--ink); background:var(--paper-2); }
+  .drop p{margin:6px 0 0; font-size:13px; color:var(--ink-2); opacity:0.75;}
+  .drop .icon{font-size:22px;}
+  .drop.disabled{ opacity:0.5; cursor:not-allowed; }
+
+  #previewGrid{
+    margin-top:12px; display:grid; grid-template-columns:repeat(auto-fill, minmax(90px, 1fr)); gap:10px;
+  }
+  .preview-item{ position:relative; aspect-ratio:1; }
+  .preview-item img{
+    width:100%; height:100%; object-fit:cover; border-radius:8px; border:1.5px solid var(--line); display:block;
+  }
+  .preview-item .remove{
+    position:absolute; top:-7px; right:-7px; width:22px; height:22px; border-radius:50%;
+    background:var(--ink); color:#fff; border:none; cursor:pointer; font-size:12px; line-height:1;
+  }
+
+  .submit-btn{
+    width:100%; padding:15px; background:var(--ink); color:var(--paper);
+    border:none; border-radius:8px; font-size:15px; font-weight:600;
+    cursor:pointer; letter-spacing:0.3px; margin-top:8px; transition: transform .1s, background .15s;
+  }
+  .submit-btn:hover{ background:var(--ink-2); }
+  .submit-btn:active{ transform:scale(0.985); }
+  .submit-btn:disabled{ opacity:0.55; cursor:not-allowed; }
+
+  .err{ color:var(--coral); font-size:12.5px; margin-top:6px; display:none; }
+
+  .success{
+    display:none; text-align:center; padding:50px 20px;
+  }
+  .success .badge{
+    width:64px;height:64px;border-radius:50%;background:var(--mint);
+    display:flex;align-items:center;justify-content:center;margin:0 auto 18px;
+    font-size:28px; color:#0d4a37;
+  }
+  .success h2{ font-family:'Courier New',monospace; font-size:20px; margin:0 0 8px; }
+  .success .tid{
+    display:inline-block; font-family:'Courier New',monospace; font-size:13px;
+    background:var(--paper-2); border:1px dashed var(--ink); border-radius:6px;
+    padding:6px 12px; margin:10px 0 18px; letter-spacing:0.5px;
+  }
+  .success p{ color:var(--ink-2); font-size:13.5px; margin:0 0 22px; }
+  .success button{
+    background:transparent; border:1.5px solid var(--ink); color:var(--ink);
+    padding:10px 20px; border-radius:8px; font-size:13.5px; cursor:pointer; font-weight:500;
+  }
+
+  .tabbar{ display:flex; gap:6px; margin-bottom:22px; }
+  .tab-btn{
+    flex:1; padding:10px; border:1.5px solid var(--line); background:#FDFCF9;
+    border-radius:8px; font-size:13.5px; font-weight:600; cursor:pointer; color:var(--ink-2);
+    font-family:inherit;
+  }
+  .tab-btn.active{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+
+  #logView{ display:none; }
+  .log-empty{ text-align:center; padding:40px 20px; color:var(--ink-2); opacity:0.7; font-size:14px; }
+  .log-loading{ text-align:center; padding:40px 20px; color:var(--ink-2); opacity:0.7; font-size:14px; }
+  .log-item{
+    background:#fff; border:1px solid var(--line); border-radius:10px;
+    padding:18px 20px; margin-bottom:12px;
+  }
+  .log-item-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:8px; }
+  .log-item-title{ font-weight:600; font-size:14.5px; margin:0; }
+  .log-badges{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
+  .badge-pill{
+    font-size:11px; font-weight:600; padding:3px 9px; border-radius:20px;
+    font-family:'Courier New',monospace; letter-spacing:0.3px;
+  }
+  .badge-type{ background:var(--paper-2); color:var(--ink); }
+  .badge-sev-ต่ำ{ background:var(--mint); color:#0d4a37; }
+  .badge-sev-ปานกลาง{ background:var(--amber); color:#4a2f00; }
+  .badge-sev-สูง{ background:var(--coral); color:#fff; }
+  .badge-status{ background:#E6F1FB; color:#0C447C; }
+  .badge-status[data-status="แก้ไขแล้ว"]{ background:var(--mint); color:#0d4a37; }
+  .badge-status[data-status="กำลังดำเนินการ"]{ background:var(--amber); color:#4a2f00; }
+  .log-desc{ font-size:13.5px; color:var(--ink-2); line-height:1.55; margin:0 0 10px; white-space:pre-wrap; }
+  .log-meta{ font-size:11.5px; color:var(--ink-2); opacity:0.65; font-family:'Courier New',monospace; }
+  .log-imgs{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+  .log-img{
+    width:90px; height:90px; object-fit:cover; border-radius:8px; border:1.5px solid var(--line);
+    display:block; cursor:pointer;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <h1 data-i18n="title">Report a Bug</h1>
+    <div class="masthead-right">
+      <span class="stamp" data-i18n="stamp">แจ้งปัญหา</span>
+      <div class="lang-switch">
+        <button class="lang-btn active" data-lang="th">TH</button>
+        <button class="lang-btn" data-lang="ja">JA</button>
+      </div>
+    </div>
+  </div>
+  <p class="sub" data-i18n="sub">พบบัค ปัญหา UX/UI คลิกผิดพลาด หรือภาษาผิดพลาด แจ้งได้ที่นี่ ทีมจะรีบดำเนินการ</p>
+
+  <div class="tabbar">
+    <button class="tab-btn active" data-tab="form" data-i18n="tabForm">แจ้งปัญหา</button>
+    <button class="tab-btn" data-tab="log" data-i18n="tabLog">ดูรายงานทั้งหมด</button>
+  </div>
+
+  <div class="ticket" id="formCard">
+    <form id="bugForm">
+
+      <div class="field">
+        <label data-i18n="typeLabel">ประเภทปัญหา<span class="req">*</span></label>
+        <div class="type-grid" id="typeGrid">
+          <label class="type-opt" data-type="บัค"><input type="radio" name="type" value="บัค"><span class="dot" style="background:var(--coral)"></span><span data-i18n="typeBug">บัค / ระบบขัดข้อง</span></label>
+          <label class="type-opt" data-type="UX/UI"><input type="radio" name="type" value="UX/UI"><span class="dot" style="background:#7F77DD"></span><span data-i18n="typeUx">ปัญหา UX / UI</span></label>
+          <label class="type-opt" data-type="คลิกผิดพลาด"><input type="radio" name="type" value="คลิกผิดพลาด"><span class="dot" style="background:var(--amber)"></span><span data-i18n="typeClick">คลิกผิดพลาด</span></label>
+          <label class="type-opt" data-type="ภาษา"><input type="radio" name="type" value="ภาษา"><span class="dot" style="background:var(--mint)"></span><span data-i18n="typeLang">ภาษา / คำผิด</span></label>
+        </div>
+        <p class="err" id="err-type" data-i18n="errType">กรุณาเลือกประเภทปัญหา</p>
+      </div>
+
+      <div class="field">
+        <label for="title" data-i18n="titleLabel">หัวข้อสั้นๆ<span class="req">*</span></label>
+        <input type="text" id="title" data-i18n-placeholder="titlePh" placeholder="เช่น ปุ่มยืนยันกดไม่ได้ในหน้าสมัครงาน">
+        <p class="err" id="err-title" data-i18n="errTitle">กรุณากรอกหัวข้อ</p>
+      </div>
+
+      <div class="field">
+        <label for="desc" data-i18n="descLabel">รายละเอียด<span class="req">*</span></label>
+        <textarea id="desc" data-i18n-placeholder="descPh" placeholder="อธิบายว่าเจออะไร ทำอะไรอยู่ตอนนั้น และควรจะเป็นอย่างไร"></textarea>
+        <p class="err" id="err-desc" data-i18n="errDesc">กรุณากรอกรายละเอียด</p>
+      </div>
+
+      <div class="field">
+        <label for="url" data-i18n="urlLabel">หน้าเว็บ / ลิงก์ที่พบปัญหา</label>
+        <input type="url" id="url" data-i18n-placeholder="urlPh" placeholder="https://example.com/หน้าที่มีปัญหา">
+      </div>
+
+      <div class="field">
+        <label data-i18n="sevLabel">ความรุนแรง</label>
+        <div class="sev-row" id="sevRow">
+          <div class="sev-opt" data-level="ต่ำ" data-i18n="sevLow">ต่ำ</div>
+          <div class="sev-opt" data-level="ปานกลาง" data-i18n="sevMid">ปานกลาง</div>
+          <div class="sev-opt" data-level="สูง" data-i18n="sevHigh">สูง</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="reporter" data-i18n="reporterLabel">ชื่อผู้แจ้ง (ไม่บังคับ)</label>
+        <input type="text" id="reporter" data-i18n-placeholder="reporterPh" placeholder="ไม่ระบุก็ได้">
+      </div>
+
+      <div class="field">
+        <label data-i18n="imgLabel">แนบภาพหน้าจอ (สูงสุด 5 รูป)</label>
+        <div class="drop" id="dropZone">
+          <div class="icon">📎</div>
+          <p data-i18n="imgDrop">คลิกหรือลากไฟล์ภาพมาวางที่นี่</p>
+        </div>
+        <input type="file" id="fileInput" accept="image/*" multiple style="display:none">
+        <div id="previewGrid"></div>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submitBtn" data-i18n="submitBtn">ส่งรายงาน</button>
+    </form>
+  </div>
+
+  <div class="ticket success" id="successCard">
+    <div class="badge">✓</div>
+    <h2 data-i18n="successTitle">ส่งรายงานเรียบร้อย</h2>
+    <div class="tid" id="ticketIdOut">BUG-XXXXXX</div>
+    <p data-i18n="successBody">ขอบคุณที่ช่วยแจ้งปัญหา ทีมงานจะตรวจสอบเร็วๆ นี้</p>
+    <button id="newReportBtn" data-i18n="newReportBtn">แจ้งรายงานใหม่</button>
+  </div>
+
+  <div id="logView"></div>
+
+</div>
+
+<script>
+// ==== ตั้งค่าตรงนี้: ใส่ URL ที่ได้จากการ Deploy Google Apps Script ====
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbww189XICq1KTubfYtp5XUlOShmeZFc_oxaHZBPVQ57oeT4VfWS6bpT6VjR1jY_KJDg/exec";
+// =======================================================================
+
+const I18N = {
+  th: {
+    title: "Report a Bug", stamp: "แจ้งปัญหา",
+    sub: "พบบัค ปัญหา UX/UI คลิกผิดพลาด หรือภาษาผิดพลาด แจ้งได้ที่นี่ ทีมจะรีบดำเนินการ",
+    tabForm: "แจ้งปัญหา", tabLog: "ดูรายงานทั้งหมด",
+    typeLabel: "ประเภทปัญหา*", typeBug: "บัค / ระบบขัดข้อง", typeUx: "ปัญหา UX / UI",
+    typeClick: "คลิกผิดพลาด", typeLang: "ภาษา / คำผิด", errType: "กรุณาเลือกประเภทปัญหา",
+    titleLabel: "หัวข้อสั้นๆ*", titlePh: "เช่น ปุ่มยืนยันกดไม่ได้ในหน้าสมัครงาน", errTitle: "กรุณากรอกหัวข้อ",
+    descLabel: "รายละเอียด*", descPh: "อธิบายว่าเจออะไร ทำอะไรอยู่ตอนนั้น และควรจะเป็นอย่างไร", errDesc: "กรุณากรอกรายละเอียด",
+    urlLabel: "หน้าเว็บ / ลิงก์ที่พบปัญหา", urlPh: "https://example.com/หน้าที่มีปัญหา",
+    sevLabel: "ความรุนแรง", sevLow: "ต่ำ", sevMid: "ปานกลาง", sevHigh: "สูง",
+    reporterLabel: "ชื่อผู้แจ้ง (ไม่บังคับ)", reporterPh: "ไม่ระบุก็ได้",
+    imgLabel: "แนบภาพหน้าจอ (สูงสุด 5 รูป)", imgDrop: "คลิกหรือลากไฟล์ภาพมาวางที่นี่",
+    submitBtn: "ส่งรายงาน", submitting: "กำลังส่ง...",
+    successTitle: "ส่งรายงานเรียบร้อย", successBody: "ขอบคุณที่ช่วยแจ้งปัญหา ทีมงานจะตรวจสอบเร็วๆ นี้",
+    newReportBtn: "แจ้งรายงานใหม่",
+    submitFail: "ส่งไม่สำเร็จ กรุณาลองใหม่",
+    logLoading: "กำลังโหลดรายงาน...", logEmpty: "ยังไม่มีรายงาน", logFail: "โหลดรายงานไม่สำเร็จ",
+    maxImgAlert: "แนบได้สูงสุด 5 รูป"
+  },
+  ja: {
+    title: "Report a Bug", stamp: "問題報告",
+    sub: "バグ、UX/UIの問題、誤クリック、または言語の誤りを報告してください。担当チームが対応します。",
+    tabForm: "問題を報告", tabLog: "報告一覧を見る",
+    typeLabel: "問題の種類*", typeBug: "バグ / システムエラー", typeUx: "UX / UIの問題",
+    typeClick: "誤クリック", typeLang: "言語 / 誤字", errType: "問題の種類を選択してください",
+    titleLabel: "件名*", titlePh: "例: 応募ページで確認ボタンが押せない", errTitle: "件名を入力してください",
+    descLabel: "詳細*", descPh: "何が起きたか、その時何をしていたか、本来どうあるべきかを説明してください", errDesc: "詳細を入力してください",
+    urlLabel: "問題が発生したページ / リンク", urlPh: "https://example.com/問題のページ",
+    sevLabel: "重要度", sevLow: "低", sevMid: "中", sevHigh: "高",
+    reporterLabel: "報告者名（任意）", reporterPh: "未記入可",
+    imgLabel: "スクリーンショットを添付（最大5枚）", imgDrop: "クリックまたは画像をドラッグして添付",
+    submitBtn: "報告を送信", submitting: "送信中...",
+    successTitle: "報告を送信しました", successBody: "ご報告ありがとうございます。担当チームが確認いたします。",
+    newReportBtn: "新しい報告を作成",
+    submitFail: "送信に失敗しました。もう一度お試しください",
+    logLoading: "報告を読み込み中...", logEmpty: "まだ報告はありません", logFail: "報告の読み込みに失敗しました",
+    maxImgAlert: "添付は最大5枚までです"
+  }
+};
+let currentLang = localStorage.getItem('bugReportLang') || 'th';
+
+function applyLang(){
+  const dict = I18N[currentLang];
+  document.documentElement.lang = currentLang;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if(dict[key] !== undefined) el.textContent = dict[key];
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.dataset.i18nPlaceholder;
+    if(dict[key] !== undefined) el.placeholder = dict[key];
+  });
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === currentLang));
+  submitBtn.textContent = dict.submitBtn;
+  if(logLoaded) loadLog(true);
+}
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentLang = btn.dataset.lang;
+    localStorage.setItem('bugReportLang', currentLang);
+    applyLang();
+  });
+});
+
+const typeGrid = document.getElementById('typeGrid');
+typeGrid.addEventListener('click', (e) => {
+  const opt = e.target.closest('.type-opt');
+  if(!opt) return;
+  typeGrid.querySelectorAll('.type-opt').forEach(o => o.classList.remove('active'));
+  opt.classList.add('active');
+  opt.querySelector('input').checked = true;
+  document.getElementById('err-type').style.display = 'none';
+});
+
+const sevRow = document.getElementById('sevRow');
+let selectedSeverity = 'ปานกลาง';
+sevRow.querySelectorAll('.sev-opt').forEach(el => {
+  if(el.dataset.level === selectedSeverity) el.classList.add('active');
+  el.addEventListener('click', () => {
+    sevRow.querySelectorAll('.sev-opt').forEach(o => o.classList.remove('active'));
+    el.classList.add('active');
+    selectedSeverity = el.dataset.level;
+  });
+});
+
+const MAX_IMAGES = 5;
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const previewGrid = document.getElementById('previewGrid');
+let imagesBase64 = [];
+
+dropZone.addEventListener('click', () => { if(imagesBase64.length < MAX_IMAGES) fileInput.click(); });
+dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  if(e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
+});
+fileInput.addEventListener('change', () => {
+  if(fileInput.files.length) handleFiles(fileInput.files);
+  fileInput.value = '';
+});
+
+function handleFiles(fileList){
+  const files = Array.from(fileList).filter(f => f.type.startsWith('image/'));
+  const room = MAX_IMAGES - imagesBase64.length;
+  if(files.length > room) alert(I18N[currentLang].maxImgAlert);
+  files.slice(0, room).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      imagesBase64.push(e.target.result);
+      renderPreviews();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderPreviews(){
+  previewGrid.innerHTML = imagesBase64.map((src, i) => `
+    <div class="preview-item">
+      <img src="${src}" alt="preview">
+      <button type="button" class="remove" data-idx="${i}">✕</button>
+    </div>
+  `).join('');
+  previewGrid.querySelectorAll('.remove').forEach(btn => {
+    btn.addEventListener('click', () => {
+      imagesBase64.splice(Number(btn.dataset.idx), 1);
+      renderPreviews();
+      updateDropState();
+    });
+  });
+  updateDropState();
+}
+
+function updateDropState(){
+  dropZone.classList.toggle('disabled', imagesBase64.length >= MAX_IMAGES);
+}
+
+const form = document.getElementById('bugForm');
+const submitBtn = document.getElementById('submitBtn');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const dict = I18N[currentLang];
+
+  const type = typeGrid.querySelector('input:checked');
+  const title = document.getElementById('title').value.trim();
+  const desc = document.getElementById('desc').value.trim();
+
+  let valid = true;
+  document.getElementById('err-type').style.display = 'none';
+  document.getElementById('err-title').style.display = 'none';
+  document.getElementById('err-desc').style.display = 'none';
+
+  if(!type){ document.getElementById('err-type').style.display = 'block'; valid = false; }
+  if(!title){ document.getElementById('err-title').style.display = 'block'; valid = false; }
+  if(!desc){ document.getElementById('err-desc').style.display = 'block'; valid = false; }
+  if(!valid) return;
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = dict.submitting;
+
+  const payload = {
+    type: type.value,
+    title: title,
+    description: desc,
+    url: document.getElementById('url').value.trim(),
+    severity: selectedSeverity,
+    reporter: document.getElementById('reporter').value.trim(),
+    images: imagesBase64
+  };
+
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    const result = await res.json();
+
+    document.getElementById('formCard').style.display = 'none';
+    document.getElementById('successCard').style.display = 'block';
+    document.getElementById('ticketIdOut').textContent = result.ticketId || 'ส่งแล้ว';
+  } catch(err) {
+    alert(dict.submitFail + ' (' + err + ')');
+    submitBtn.disabled = false;
+    submitBtn.textContent = dict.submitBtn;
+  }
+});
+
+document.getElementById('newReportBtn').addEventListener('click', () => {
+  form.reset();
+  typeGrid.querySelectorAll('.type-opt').forEach(o => o.classList.remove('active'));
+  imagesBase64 = [];
+  renderPreviews();
+  document.getElementById('successCard').style.display = 'none';
+  document.getElementById('formCard').style.display = 'block';
+  submitBtn.disabled = false;
+  submitBtn.textContent = I18N[currentLang].submitBtn;
+});
+
+const tabBtns = document.querySelectorAll('.tab-btn');
+const formCard = document.getElementById('formCard');
+const logView = document.getElementById('logView');
+let logLoaded = false;
+
+tabBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    tabBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (btn.dataset.tab === 'form') {
+      formCard.style.display = 'block';
+      logView.style.display = 'none';
+    } else {
+      formCard.style.display = 'none';
+      logView.style.display = 'block';
+      loadLog();
+    }
+  });
+});
+
+async function loadLog(force) {
+  const dict = I18N[currentLang];
+  if (logLoaded && !force) return;
+  logView.innerHTML = `<div class="log-loading">${dict.logLoading}</div>`;
+  try {
+    const res = await fetch(SCRIPT_URL, { method: 'GET' });
+    const result = await res.json();
+    if (!result.ok) throw new Error(result.error || dict.logFail);
+
+    logLoaded = true;
+    if (!result.reports.length) {
+      logView.innerHTML = `<div class="log-empty">${dict.logEmpty}</div>`;
+      return;
+    }
+
+    logView.innerHTML = result.reports.map(r => `
+      <div class="log-item">
+        <div class="log-item-top">
+          <p class="log-item-title">${escapeHtml(r.title)}</p>
+        </div>
+        <div class="log-badges">
+          <span class="badge-pill badge-type">${escapeHtml(r.type)}</span>
+          ${r.severity ? `<span class="badge-pill badge-sev-${escapeHtml(r.severity)}">${escapeHtml(r.severity)}</span>` : ''}
+          <span class="badge-pill badge-status" data-status="${escapeHtml(r.status)}">${escapeHtml(r.status)}</span>
+        </div>
+        <p class="log-desc">${escapeHtml(r.description)}</p>
+        ${(r.images && r.images.length) ? `<div class="log-imgs">${r.images.map(img => img.imageUrl ? `<img class="log-img" src="${img.imageUrl}" alt="ภาพที่แนบ" loading="lazy" onclick="window.open('${img.driveLink}','_blank')">` : '').join('')}</div>` : ''}
+        <div class="log-meta">${escapeHtml(r.ticketId)} · ${escapeHtml(r.date)}${r.reporter ? ' · ' + escapeHtml(r.reporter) : ''}${r.url ? ' · ' + escapeHtml(r.url) : ''}</div>
+      </div>
+    `).join('');
+  } catch (err) {
+    logView.innerHTML = `<div class="log-empty">${dict.logFail}: ${escapeHtml(String(err))}</div>`;
+  }
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : str;
+  return div.innerHTML;
+}
+
+applyLang();
+</script>
+</body>
+</html>

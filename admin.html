@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>แอดมิน - จัดการรายงานปัญหา</title>
+<style>
+  :root{
+    --ink:#1B2333;
+    --ink-2:#2A3448;
+    --paper:#F6F4EE;
+    --paper-2:#EDE9DE;
+    --amber:#F5A623;
+    --coral:#E85D4E;
+    --mint:#4ECCA3;
+    --line: rgba(27,35,51,0.14);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(27,35,51,0.06) 1px, transparent 0);
+    background-size: 22px 22px;
+    color:var(--ink);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    min-height:100vh;
+    padding: 40px 16px 80px;
+  }
+  .wrap{max-width:760px;margin:0 auto;}
+
+  .masthead{
+    display:flex; align-items:flex-end; justify-content:space-between;
+    margin-bottom:28px; padding-bottom:16px; border-bottom:3px solid var(--ink);
+    gap:12px; flex-wrap:wrap;
+  }
+  .masthead h1{
+    font-family: 'Courier New', monospace;
+    font-size:26px; letter-spacing:-0.5px; margin:0; font-weight:700;
+  }
+  .masthead-right{ display:flex; align-items:center; gap:8px; }
+  .masthead .stamp{
+    font-family:'Courier New', monospace; font-size:11px; letter-spacing:1px;
+    color:#fff; background:var(--ink); border-radius:3px; padding:4px 8px;
+    transform:rotate(-3deg); text-transform:uppercase;
+  }
+  .lang-switch{
+    display:flex; border:1.5px solid var(--ink); border-radius:8px; overflow:hidden;
+  }
+  .lang-btn{
+    border:none; background:#fff; color:var(--ink); padding:7px 12px; font-size:12.5px;
+    font-weight:600; cursor:pointer; font-family:inherit;
+  }
+  .lang-btn.active{ background:var(--ink); color:var(--paper); }
+
+  /* login gate */
+  .login-box{
+    max-width:360px; margin:80px auto 0; background:#fff; border:1px solid var(--line);
+    border-radius:10px; padding:32px 28px; text-align:center;
+  }
+  .login-box .lock{ font-size:26px; margin-bottom:10px; }
+  .login-box h2{ font-family:'Courier New',monospace; font-size:18px; margin:0 0 6px; }
+  .login-box p{ font-size:13px; color:var(--ink-2); opacity:0.7; margin:0 0 20px; }
+  .login-box input{
+    width:100%; border:1.5px solid var(--line); border-radius:8px;
+    padding:11px 13px; font-size:14.5px; margin-bottom:12px; font-family:inherit;
+  }
+  .login-box input:focus{ outline:none; border-color:var(--ink); }
+  .login-box button{
+    width:100%; padding:12px; background:var(--ink); color:var(--paper);
+    border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer;
+  }
+  .login-box .err{ color:var(--coral); font-size:12.5px; margin-top:10px; display:none; }
+
+  /* toolbar */
+  .toolbar{ display:flex; gap:8px; margin-bottom:20px; align-items:center; }
+  .toolbar select, .toolbar input{
+    border:1.5px solid var(--line); border-radius:8px; padding:9px 12px;
+    font-size:13.5px; font-family:inherit; background:#fff;
+  }
+  .toolbar input{ flex:1; }
+  .toolbar .refresh-btn{
+    border:1.5px solid var(--line); background:#fff; border-radius:8px;
+    padding:9px 14px; font-size:13px; cursor:pointer; font-weight:500;
+  }
+  .count{ font-size:12.5px; color:var(--ink-2); opacity:0.7; margin-bottom:14px; }
+
+  .card{
+    background:#fff; border:1px solid var(--line); border-radius:10px;
+    padding:18px 20px; margin-bottom:12px;
+  }
+  .card-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:8px; }
+  .card-title{ font-weight:600; font-size:15px; margin:0; }
+  .card-badges{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+  .badge-pill{
+    font-size:11px; font-weight:600; padding:3px 9px; border-radius:20px;
+    font-family:'Courier New',monospace; letter-spacing:0.3px;
+  }
+  .badge-type{ background:var(--paper-2); color:var(--ink); }
+  .badge-sev-ต่ำ{ background:var(--mint); color:#0d4a37; }
+  .badge-sev-ปานกลาง{ background:var(--amber); color:#4a2f00; }
+  .badge-sev-สูง{ background:var(--coral); color:#fff; }
+  .card-desc{ font-size:13.5px; color:var(--ink-2); line-height:1.55; margin:0 0 10px; white-space:pre-wrap; }
+  .card-imgs{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+  .card-img{
+    width:90px; height:90px; object-fit:cover; border-radius:8px; border:1.5px solid var(--line);
+    display:block; cursor:pointer;
+  }
+  .card-meta{ font-size:11.5px; color:var(--ink-2); opacity:0.65; font-family:'Courier New',monospace; margin-bottom:14px; }
+
+  .card-controls{ display:flex; gap:8px; align-items:center; border-top:1px dashed var(--line); padding-top:14px; }
+  .status-select{
+    border:1.5px solid var(--line); border-radius:8px; padding:8px 10px;
+    font-size:13px; font-family:inherit; background:#fff; flex:1;
+  }
+  .status-select[data-status="ใหม่"]{ border-color:#85B7EB; }
+  .status-select[data-status="กำลังดำเนินการ"]{ border-color:var(--amber); }
+  .status-select[data-status="แก้ไขแล้ว"]{ border-color:var(--mint); }
+  .icon-btn{
+    border:1.5px solid var(--line); background:#fff; border-radius:8px;
+    width:36px; height:36px; cursor:pointer; font-size:14px; flex:none;
+  }
+  .icon-btn.danger{ border-color:var(--coral); color:var(--coral); }
+  .icon-btn:hover{ background:var(--paper-2); }
+  .save-hint{ font-size:11px; color:var(--mint); font-weight:600; opacity:0; transition:opacity .2s; margin-left:4px; }
+  .save-hint.show{ opacity:1; }
+
+  .empty{ text-align:center; padding:50px 20px; color:var(--ink-2); opacity:0.7; font-size:14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div id="loginView">
+    <div class="login-box">
+      <div class="lock">🔒</div>
+      <h2 data-i18n="loginTitle">เข้าสู่ระบบแอดมิน</h2>
+      <p data-i18n="loginSub">กรอกรหัสผ่านเพื่อจัดการรายงานปัญหา</p>
+      <input type="password" id="pwInput" data-i18n-placeholder="pwPh" placeholder="รหัสผ่าน">
+      <button id="loginBtn" data-i18n="loginBtn">เข้าสู่ระบบ</button>
+      <p class="err" id="loginErr" data-i18n="loginErr">รหัสผ่านไม่ถูกต้อง</p>
+    </div>
+  </div>
+
+  <div id="adminView" style="display:none;">
+    <div class="masthead">
+      <h1 data-i18n="pageTitle">จัดการรายงานปัญหา</h1>
+      <div class="masthead-right">
+        <span class="stamp" data-i18n="stamp">แอดมิน</span>
+        <div class="lang-switch">
+          <button class="lang-btn active" data-lang="th">TH</button>
+          <button class="lang-btn" data-lang="ja">JA</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <select id="filterStatus">
+        <option value="" data-i18n="statusAll">ทุกสถานะ</option>
+        <option value="ใหม่" data-i18n="statusNew">ใหม่</option>
+        <option value="กำลังดำเนินการ" data-i18n="statusProgress">กำลังดำเนินการ</option>
+        <option value="แก้ไขแล้ว" data-i18n="statusDone">แก้ไขแล้ว</option>
+      </select>
+      <input type="text" id="searchBox" data-i18n-placeholder="searchPh" placeholder="ค้นหาหัวข้อ / เลขที่รายงาน">
+      <button class="refresh-btn" id="refreshBtn" data-i18n="refreshBtn">รีเฟรช</button>
+    </div>
+    <p class="count" id="countLabel"></p>
+
+    <div id="listView"></div>
+  </div>
+
+</div>
+
+<script>
+// ==== ตั้งค่าตรงนี้: ใส่ URL เดียวกับที่ใช้ในหน้า report.html ====
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbww189XICq1KTubfYtp5XUlOShmeZFc_oxaHZBPVQ57oeT4VfWS6bpT6VjR1jY_KJDg/exec";
+// =================================================================
+
+const I18N = {
+  th: {
+    pageTitle: "จัดการรายงานปัญหา", stamp: "แอดมิน",
+    loginTitle: "เข้าสู่ระบบแอดมิน", loginSub: "กรอกรหัสผ่านเพื่อจัดการรายงานปัญหา",
+    pwPh: "รหัสผ่าน", loginBtn: "เข้าสู่ระบบ", loggingIn: "กำลังตรวจสอบ...",
+    loginErr: "รหัสผ่านไม่ถูกต้อง", connFail: "เชื่อมต่อไม่สำเร็จ",
+    statusAll: "ทุกสถานะ", statusNew: "ใหม่", statusProgress: "กำลังดำเนินการ", statusDone: "แก้ไขแล้ว",
+    searchPh: "ค้นหาหัวข้อ / เลขที่รายงาน", refreshBtn: "รีเฟรช",
+    loading: "กำลังโหลด...", loadFail: "โหลดไม่สำเร็จ", noReports: "ไม่พบรายงาน",
+    countLabel: (shown, total) => `แสดง ${shown} จาก ${total} รายการ`,
+    saved: "บันทึกแล้ว", deleteTitle: "ลบรายงานนี้",
+    saveFail: "บันทึกไม่สำเร็จ", deleteFail: "ลบไม่สำเร็จ",
+    deleteConfirm: (id) => `ลบรายงาน ${id} ใช่ไหม? การลบไม่สามารถกู้คืนได้`,
+    imgAlt: "ภาพที่แนบ"
+  },
+  ja: {
+    pageTitle: "問題報告の管理", stamp: "管理者",
+    loginTitle: "管理者ログイン", loginSub: "パスワードを入力して報告を管理してください",
+    pwPh: "パスワード", loginBtn: "ログイン", loggingIn: "確認中...",
+    loginErr: "パスワードが正しくありません", connFail: "接続に失敗しました",
+    statusAll: "すべてのステータス", statusNew: "新規", statusProgress: "対応中", statusDone: "対応済み",
+    searchPh: "件名 / 報告番号で検索", refreshBtn: "更新",
+    loading: "読み込み中...", loadFail: "読み込みに失敗しました", noReports: "報告が見つかりません",
+    countLabel: (shown, total) => `${total}件中${shown}件を表示`,
+    saved: "保存しました", deleteTitle: "この報告を削除",
+    saveFail: "保存に失敗しました", deleteFail: "削除に失敗しました",
+    deleteConfirm: (id) => `報告 ${id} を削除しますか？元に戻せません。`,
+    imgAlt: "添付画像"
+  }
+};
+let currentLang = localStorage.getItem('bugAdminLang') || 'th';
+
+function applyLang(){
+  const dict = I18N[currentLang];
+  document.documentElement.lang = currentLang;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if(typeof dict[key] === 'string') el.textContent = dict[key];
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.dataset.i18nPlaceholder;
+    if(typeof dict[key] === 'string') el.placeholder = dict[key];
+  });
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === currentLang));
+  if(!loginBtn.disabled) loginBtn.textContent = dict.loginBtn;
+  if(allReports.length || document.querySelectorAll('.card').length) renderList();
+}
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentLang = btn.dataset.lang;
+    localStorage.setItem('bugAdminLang', currentLang);
+    applyLang();
+  });
+});
+
+let adminToken = sessionStorage.getItem('bugAdminToken') || '';
+let allReports = [];
+
+const loginView = document.getElementById('loginView');
+const adminView = document.getElementById('adminView');
+const pwInput = document.getElementById('pwInput');
+const loginBtn = document.getElementById('loginBtn');
+const loginErr = document.getElementById('loginErr');
+
+async function tryLogin(token){
+  const dict = I18N[currentLang];
+  loginBtn.disabled = true;
+  loginBtn.textContent = dict.loggingIn;
+  loginErr.style.display = 'none';
+  try{
+    const res = await fetch(SCRIPT_URL + '?action=checkAuth&token=' + encodeURIComponent(token));
+    const result = await res.json();
+    if(result.ok){
+      adminToken = token;
+      sessionStorage.setItem('bugAdminToken', token);
+      loginView.style.display = 'none';
+      adminView.style.display = 'block';
+      loadReports();
+    } else {
+      loginErr.textContent = dict.loginErr;
+      loginErr.style.display = 'block';
+    }
+  } catch(err){
+    loginErr.textContent = dict.connFail + ': ' + err;
+    loginErr.style.display = 'block';
+  }
+  loginBtn.disabled = false;
+  loginBtn.textContent = dict.loginBtn;
+}
+
+loginBtn.addEventListener('click', () => {
+  if(!pwInput.value) return;
+  tryLogin(pwInput.value);
+});
+pwInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') loginBtn.click(); });
+
+if(adminToken){ tryLogin(adminToken); }
+
+const listView = document.getElementById('listView');
+const countLabel = document.getElementById('countLabel');
+const filterStatus = document.getElementById('filterStatus');
+const searchBox = document.getElementById('searchBox');
+const refreshBtn = document.getElementById('refreshBtn');
+
+async function loadReports(){
+  const dict = I18N[currentLang];
+  listView.innerHTML = `<div class="empty">${dict.loading}</div>`;
+  try{
+    const res = await fetch(SCRIPT_URL, { method: 'GET' });
+    const result = await res.json();
+    if(!result.ok) throw new Error(result.error || dict.loadFail);
+    allReports = result.reports;
+    renderList();
+  } catch(err){
+    listView.innerHTML = `<div class="empty">${dict.loadFail}: ${escapeHtml(String(err))}</div>`;
+  }
+}
+
+const STATUS_KEY = { 'ใหม่': 'statusNew', 'กำลังดำเนินการ': 'statusProgress', 'แก้ไขแล้ว': 'statusDone' };
+
+function renderList(){
+  const dict = I18N[currentLang];
+  const statusF = filterStatus.value;
+  const q = searchBox.value.trim().toLowerCase();
+
+  const filtered = allReports.filter(r => {
+    if(statusF && r.status !== statusF) return false;
+    if(q && !(r.title.toLowerCase().includes(q) || r.ticketId.toLowerCase().includes(q))) return false;
+    return true;
+  });
+
+  countLabel.textContent = dict.countLabel(filtered.length, allReports.length);
+
+  if(!filtered.length){
+    listView.innerHTML = `<div class="empty">${dict.noReports}</div>`;
+    return;
+  }
+
+  listView.innerHTML = filtered.map(r => `
+    <div class="card" data-ticket="${escapeHtml(r.ticketId)}">
+      <div class="card-top">
+        <p class="card-title">${escapeHtml(r.title)}</p>
+      </div>
+      <div class="card-badges">
+        <span class="badge-pill badge-type">${escapeHtml(r.type)}</span>
+        ${r.severity ? `<span class="badge-pill badge-sev-${escapeHtml(r.severity)}">${escapeHtml(r.severity)}</span>` : ''}
+      </div>
+      <p class="card-desc">${escapeHtml(r.description)}</p>
+      ${(r.images && r.images.length) ? `<div class="card-imgs">${r.images.map(img => img.imageUrl ? `<img class="card-img" src="${img.imageUrl}" alt="${dict.imgAlt}" loading="lazy" onclick="window.open('${img.driveLink}','_blank')">` : '').join('')}</div>` : ''}
+      <div class="card-meta">${escapeHtml(r.ticketId)} · ${escapeHtml(r.date)}${r.reporter ? ' · ' + escapeHtml(r.reporter) : ''}${r.url ? ' · ' + escapeHtml(r.url) : ''}</div>
+      <div class="card-controls">
+        <select class="status-select" data-status="${escapeHtml(r.status)}">
+          <option value="ใหม่" ${r.status === 'ใหม่' ? 'selected' : ''}>${dict.statusNew}</option>
+          <option value="กำลังดำเนินการ" ${r.status === 'กำลังดำเนินการ' ? 'selected' : ''}>${dict.statusProgress}</option>
+          <option value="แก้ไขแล้ว" ${r.status === 'แก้ไขแล้ว' ? 'selected' : ''}>${dict.statusDone}</option>
+        </select>
+        <span class="save-hint">${dict.saved}</span>
+        <button class="icon-btn danger" title="${dict.deleteTitle}">✕</button>
+      </div>
+    </div>
+  `).join('');
+
+  listView.querySelectorAll('.card').forEach(card => {
+    const ticketId = card.dataset.ticket;
+    const select = card.querySelector('.status-select');
+    const hint = card.querySelector('.save-hint');
+    const delBtn = card.querySelector('.icon-btn.danger');
+
+    select.addEventListener('change', async () => {
+      const d = I18N[currentLang];
+      select.dataset.status = select.value;
+      try{
+        await postAdmin({ action: 'update', ticketId: ticketId, status: select.value });
+        const rep = allReports.find(x => x.ticketId === ticketId);
+        if(rep) rep.status = select.value;
+        hint.classList.add('show');
+        setTimeout(() => hint.classList.remove('show'), 1500);
+      } catch(err){
+        alert(d.saveFail + ': ' + err);
+      }
+    });
+
+    delBtn.addEventListener('click', async () => {
+      const d = I18N[currentLang];
+      if(!confirm(d.deleteConfirm(ticketId))) return;
+      delBtn.disabled = true;
+      try{
+        await postAdmin({ action: 'delete', ticketId: ticketId });
+        allReports = allReports.filter(x => x.ticketId !== ticketId);
+        renderList();
+      } catch(err){
+        alert(d.deleteFail + ': ' + err);
+        delBtn.disabled = false;
+      }
+    });
+  });
+}
+
+async function postAdmin(payload){
+  const dict = I18N[currentLang];
+  payload.token = adminToken;
+  const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+  const result = await res.json();
+  if(!result.ok) throw new Error(result.error || dict.loadFail);
+  return result;
+}
+
+filterStatus.addEventListener('change', renderList);
+searchBox.addEventListener('input', renderList);
+refreshBtn.addEventListener('click', loadReports);
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : str;
+  return div.innerHTML;
+}
+
+applyLang();
+</script>
+</body>
+</html>
