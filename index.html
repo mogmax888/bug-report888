@@ -237,6 +237,7 @@
           <label class="type-opt" data-type="UX/UI"><input type="radio" name="type" value="UX/UI"><span class="dot" style="background:#7F77DD"></span><span data-i18n="typeUx">ปัญหา UX / UI</span></label>
           <label class="type-opt" data-type="คลิกผิดพลาด"><input type="radio" name="type" value="คลิกผิดพลาด"><span class="dot" style="background:var(--amber)"></span><span data-i18n="typeClick">คลิกผิดพลาด</span></label>
           <label class="type-opt" data-type="ภาษา"><input type="radio" name="type" value="ภาษา"><span class="dot" style="background:var(--mint)"></span><span data-i18n="typeLang">ภาษา / คำผิด</span></label>
+          <label class="type-opt" data-type="ไอเดีย"><input type="radio" name="type" value="ไอเดีย"><span class="dot" style="background:#7F77DD"></span><span data-i18n="typeIdea">ไอเดีย / ข้อเสนอแนะ</span></label>
         </div>
         <p class="err" id="err-type" data-i18n="errType">กรุณาเลือกประเภทปัญหา</p>
       </div>
@@ -301,6 +302,7 @@
       <option value="UX/UI" data-i18n="typeUx">ปัญหา UX / UI</option>
       <option value="คลิกผิดพลาด" data-i18n="typeClick">คลิกผิดพลาด</option>
       <option value="ภาษา" data-i18n="typeLang">ภาษา / คำผิด</option>
+      <option value="ไอเดีย" data-i18n="typeIdea">ไอเดีย / ข้อเสนอแนะ</option>
     </select>
     <select id="filterStatus">
       <option value="" data-i18n="filterAllStatus">ทุกสถานะ</option>
@@ -326,7 +328,7 @@ const I18N = {
     sub: "พบบัค ปัญหา UX/UI คลิกผิดพลาด หรือภาษาผิดพลาด แจ้งได้ที่นี่ ทีมจะรีบดำเนินการ",
     tabForm: "แจ้งปัญหา", tabLog: "ดูรายงานทั้งหมด",
     typeLabel: "ประเภทปัญหา*", typeBug: "บัค / ระบบขัดข้อง", typeUx: "ปัญหา UX / UI",
-    typeClick: "คลิกผิดพลาด", typeLang: "ภาษา / คำผิด", errType: "กรุณาเลือกประเภทปัญหา",
+    typeClick: "คลิกผิดพลาด", typeLang: "ภาษา / คำผิด", typeIdea: "ไอเดีย / ข้อเสนอแนะ", errType: "กรุณาเลือกประเภทปัญหา",
     titleLabel: "หัวข้อสั้นๆ*", titlePh: "เช่น ปุ่มยืนยันกดไม่ได้ในหน้าสมัครงาน", errTitle: "กรุณากรอกหัวข้อ",
     descLabel: "รายละเอียด*", descPh: "อธิบายว่าเจออะไร ทำอะไรอยู่ตอนนั้น และควรจะเป็นอย่างไร", errDesc: "กรุณากรอกรายละเอียด",
     urlLabel: "หน้าเว็บ / ลิงก์ที่พบปัญหา", urlPh: "https://example.com/หน้าที่มีปัญหา",
@@ -348,7 +350,7 @@ const I18N = {
     sub: "バグ、UX/UIの問題、誤クリック、または言語の誤りを報告してください。担当チームが対応します。",
     tabForm: "問題を報告", tabLog: "報告一覧を見る",
     typeLabel: "問題の種類*", typeBug: "バグ / システムエラー", typeUx: "UX / UIの問題",
-    typeClick: "誤クリック", typeLang: "言語 / 誤字", errType: "問題の種類を選択してください",
+    typeClick: "誤クリック", typeLang: "言語 / 誤字", typeIdea: "アイデア / 提案", errType: "問題の種類を選択してください",
     titleLabel: "件名*", titlePh: "例: 応募ページで確認ボタンが押せない", errTitle: "件名を入力してください",
     descLabel: "詳細*", descPh: "何が起きたか、その時何をしていたか、本来どうあるべきかを説明してください", errDesc: "詳細を入力してください",
     urlLabel: "問題が発生したページ / リンク", urlPh: "https://example.com/問題のページ",
@@ -384,7 +386,7 @@ function applyLang(){
   if(logLoaded) renderReports();
 }
 
-const TYPE_KEY = { 'บัค': 'typeBug', 'UX/UI': 'typeUx', 'คลิกผิดพลาด': 'typeClick', 'ภาษา': 'typeLang' };
+const TYPE_KEY = { 'บัค': 'typeBug', 'UX/UI': 'typeUx', 'คลิกผิดพลาด': 'typeClick', 'ภาษา': 'typeLang', 'ไอเดีย': 'typeIdea' };
 const SEV_KEY = { 'ต่ำ': 'sevLow', 'ปานกลาง': 'sevMid', 'สูง': 'sevHigh' };
 const STATUS_KEY = { 'ใหม่': 'statusNew', 'กำลังดำเนินการ': 'statusProgress', 'แก้ไขแล้ว': 'statusDone' };
 function trType(v){ const k = TYPE_KEY[v]; return k ? I18N[currentLang][k] : v; }
@@ -546,14 +548,20 @@ tabBtns.forEach(btn => {
     btn.classList.add('active');
     if (btn.dataset.tab === 'form') {
       formCard.style.display = 'block';
+      successCard.style.display = 'none';
       logView.style.display = 'none';
+      logFilter.style.display = 'none';
+      logCount.style.display = 'none';
     } else {
       formCard.style.display = 'none';
+      successCard.style.display = 'none';
       logView.style.display = 'block';
       loadLog();
     }
   });
 });
+
+const successCard = document.getElementById('successCard');
 
 const logFilter = document.getElementById('logFilter');
 const logCount = document.getElementById('logCount');
