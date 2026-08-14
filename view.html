@@ -84,9 +84,19 @@
   .log-desc{ font-size:13.5px; color:var(--ink-2); line-height:1.55; margin:0 0 10px; white-space:pre-wrap; }
   .log-meta{ font-size:11.5px; color:var(--ink-2); opacity:0.65; font-family:'Courier New',monospace; }
   .log-imgs{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+  .log-img-wrap{ position:relative; display:inline-block; }
   .log-img{
     width:90px; height:90px; object-fit:cover; border-radius:8px; border:1.5px solid var(--line);
     display:block; cursor:pointer;
+  }
+  .log-img-preview{
+    display:none; position:absolute; z-index:50; bottom:calc(100% + 8px); left:0;
+    max-width:340px; max-height:340px; border-radius:10px; border:2px solid var(--ink);
+    box-shadow: 0 8px 24px rgba(27,35,51,0.28); background:#fff; pointer-events:none;
+  }
+  .log-img-wrap:hover .log-img-preview{ display:block; }
+  @media (max-width:480px){
+    .log-img-preview{ max-width:220px; max-height:220px; left:auto; right:0; }
   }
 </style>
 </head>
@@ -246,7 +256,7 @@ function renderReports(){
         <span class="badge-pill badge-status" data-status="${escapeHtml(r.status)}">${escapeHtml(trStatus(r.status))}</span>
       </div>
       <p class="log-desc">${escapeHtml(r.description)}</p>
-      ${(r.images && r.images.length) ? `<div class="log-imgs">${r.images.map(img => img.imageUrl ? `<img class="log-img" src="${img.imageUrl}" alt="${escapeHtml(dict.imgLabel)}" loading="lazy" onclick="window.open('${img.driveLink}','_blank')">` : '').join('')}</div>` : ''}
+      ${(r.images && r.images.length) ? `<div class="log-imgs">${r.images.map(img => img.imageUrl ? `<span class="log-img-wrap"><img class="log-img" src="${img.imageUrl}" alt="${escapeHtml(dict.imgLabel)}" loading="lazy" onclick="window.open('${img.driveLink}','_blank')"><img class="log-img-preview" src="${img.imageUrl}" alt=""></span>` : '').join('')}</div>` : ''}
       <div class="log-meta">${escapeHtml(r.ticketId)} · ${escapeHtml(r.date)}${r.reporter ? ' · ' + escapeHtml(r.reporter) : ''}${r.url ? ' · ' + escapeHtml(r.url) : ''}</div>
     </div>
   `).join('');
