@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ดูรายงานปัญหา / 報告一覧</title>
+<style>
+  :root{
+    --ink:#1B2333;
+    --ink-2:#2A3448;
+    --paper:#F6F4EE;
+    --paper-2:#EDE9DE;
+    --amber:#F5A623;
+    --coral:#E85D4E;
+    --mint:#4ECCA3;
+    --line: rgba(27,35,51,0.14);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(27,35,51,0.06) 1px, transparent 0);
+    background-size: 22px 22px;
+    color:var(--ink);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    min-height:100vh;
+    padding: 40px 16px 80px;
+  }
+  .wrap{max-width:640px;margin:0 auto;}
+
+  .masthead{
+    display:flex; align-items:flex-end; justify-content:space-between;
+    margin-bottom:28px; padding-bottom:16px; border-bottom:3px solid var(--ink);
+    gap:12px; flex-wrap:wrap;
+  }
+  .masthead h1{
+    font-family: 'Courier New', monospace;
+    font-size:26px; letter-spacing:-0.5px; margin:0; font-weight:700;
+  }
+  .masthead-right{ display:flex; align-items:center; gap:8px; }
+  .masthead .stamp{
+    font-family:'Courier New', monospace; font-size:11px; letter-spacing:1px;
+    color:var(--ink); background:transparent; border:2px solid var(--ink);
+    border-radius:3px; padding:4px 8px; transform:rotate(-3deg);
+    text-transform:uppercase;
+  }
+  .lang-switch{
+    display:flex; border:1.5px solid var(--ink); border-radius:8px; overflow:hidden;
+  }
+  .lang-btn{
+    border:none; background:#fff; color:var(--ink); padding:7px 12px; font-size:12.5px;
+    font-weight:600; cursor:pointer; font-family:inherit;
+  }
+  .lang-btn.active{ background:var(--ink); color:var(--paper); }
+
+  .log-filter{ display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+  .log-filter select{
+    flex:1; min-width:140px; border:1.5px solid var(--line); border-radius:8px;
+    padding:9px 12px; font-size:13.5px; font-family:inherit; background:#FDFCF9; color:var(--ink);
+  }
+  .log-filter select:focus{ outline:none; border-color:var(--ink); }
+  .log-count{ font-size:12px; color:var(--ink-2); opacity:0.65; margin-bottom:12px; }
+  .log-empty{ text-align:center; padding:40px 20px; color:var(--ink-2); opacity:0.7; font-size:14px; }
+  .log-loading{ text-align:center; padding:40px 20px; color:var(--ink-2); opacity:0.7; font-size:14px; }
+  .log-item{
+    background:#fff; border:1px solid var(--line); border-radius:10px;
+    padding:18px 20px; margin-bottom:12px;
+  }
+  .log-item-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:8px; }
+  .log-item-title{ font-weight:600; font-size:14.5px; margin:0; }
+  .log-badges{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
+  .badge-pill{
+    font-size:11px; font-weight:600; padding:3px 9px; border-radius:20px;
+    font-family:'Courier New',monospace; letter-spacing:0.3px;
+  }
+  .badge-type{ background:var(--paper-2); color:var(--ink); }
+  .badge-sev-ต่ำ{ background:var(--mint); color:#0d4a37; }
+  .badge-sev-ปานกลาง{ background:var(--amber); color:#4a2f00; }
+  .badge-sev-สูง{ background:var(--coral); color:#fff; }
+  .badge-status{ background:#E6F1FB; color:#0C447C; }
+  .badge-status[data-status="แก้ไขแล้ว"]{ background:var(--mint); color:#0d4a37; }
+  .badge-status[data-status="กำลังดำเนินการ"]{ background:var(--amber); color:#4a2f00; }
+  .log-desc{ font-size:13.5px; color:var(--ink-2); line-height:1.55; margin:0 0 10px; white-space:pre-wrap; }
+  .log-meta{ font-size:11.5px; color:var(--ink-2); opacity:0.65; font-family:'Courier New',monospace; }
+  .log-imgs{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+  .log-img{
+    width:90px; height:90px; object-fit:cover; border-radius:8px; border:1.5px solid var(--line);
+    display:block; cursor:pointer;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <h1 data-i18n="title">求人サイト：UXUI Report status</h1>
+    <div class="masthead-right">
+      <span class="stamp" data-i18n="stamp">รายงานทั้งหมด</span>
+      <div class="lang-switch">
+        <button class="lang-btn active" data-lang="th">TH</button>
+        <button class="lang-btn" data-lang="ja">JA</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="log-filter" id="logFilter" style="display:none;">
+    <select id="filterType">
+      <option value="" data-i18n="filterAllType">ทุกประเภท</option>
+      <option value="บัค" data-i18n="typeBug">บัค / ระบบขัดข้อง</option>
+      <option value="UX/UI" data-i18n="typeUx">ปัญหา UX / UI</option>
+      <option value="คลิกผิดพลาด" data-i18n="typeClick">คลิกผิดพลาด</option>
+      <option value="ภาษา" data-i18n="typeLang">ภาษา / คำผิด</option>
+      <option value="ไอเดีย" data-i18n="typeIdea">ไอเดีย / ข้อเสนอแนะ</option>
+    </select>
+    <select id="filterStatus">
+      <option value="" data-i18n="filterAllStatus">ทุกสถานะ</option>
+      <option value="ใหม่" data-i18n="statusNew">ใหม่</option>
+      <option value="กำลังดำเนินการ" data-i18n="statusProgress">กำลังดำเนินการ</option>
+      <option value="แก้ไขแล้ว" data-i18n="statusDone">แก้ไขแล้ว</option>
+    </select>
+  </div>
+  <p class="log-count" id="logCount" style="display:none;"></p>
+
+  <div id="logView"></div>
+
+</div>
+
+<script>
+// ==== ตั้งค่าตรงนี้: ใส่ URL เดียวกับที่ใช้ในหน้า index.html / admin.html ====
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzLcM1qvtyK2v7fBV51EFRAhV4QTON08CXN0hFey9YO1QiaiMrGxvxzrtMiB0F6UEAt/exec";
+// =============================================================================
+
+const I18N = {
+  th: {
+    title: "求人サイト：UXUI Report status", stamp: "รายงานทั้งหมด",
+    typeBug: "บัค / ระบบขัดข้อง", typeUx: "ปัญหา UX / UI",
+    typeClick: "คลิกผิดพลาด", typeLang: "ภาษา / คำผิด", typeIdea: "ไอเดีย / ข้อเสนอแนะ",
+    sevLow: "ต่ำ", sevMid: "ปานกลาง", sevHigh: "สูง",
+    logLoading: "กำลังโหลดรายงาน...", logEmpty: "ยังไม่มีรายงาน", logFail: "โหลดรายงานไม่สำเร็จ",
+    filterAllType: "ทุกประเภท", filterAllStatus: "ทุกสถานะ",
+    statusNew: "ใหม่", statusProgress: "กำลังดำเนินการ", statusDone: "แก้ไขแล้ว",
+    logCount: (shown, total) => `แสดง ${shown} จาก ${total} รายการ`,
+    imgLabel: "ภาพที่แนบ"
+  },
+  ja: {
+    title: "求人サイト：UXUI Report status", stamp: "報告一覧",
+    typeBug: "バグ / システムエラー", typeUx: "UX / UIの問題",
+    typeClick: "誤クリック", typeLang: "言語 / 誤字", typeIdea: "アイデア / 提案",
+    sevLow: "低", sevMid: "中", sevHigh: "高",
+    logLoading: "報告を読み込み中...", logEmpty: "まだ報告はありません", logFail: "報告の読み込みに失敗しました",
+    filterAllType: "すべての種類", filterAllStatus: "すべてのステータス",
+    statusNew: "新規", statusProgress: "対応中", statusDone: "対応済み",
+    logCount: (shown, total) => `${total}件中${shown}件を表示`,
+    imgLabel: "添付画像"
+  }
+};
+let currentLang = localStorage.getItem('bugReportLang') || 'th';
+
+const TYPE_KEY = { 'บัค': 'typeBug', 'UX/UI': 'typeUx', 'คลิกผิดพลาด': 'typeClick', 'ภาษา': 'typeLang', 'ไอเดีย': 'typeIdea' };
+const SEV_KEY = { 'ต่ำ': 'sevLow', 'ปานกลาง': 'sevMid', 'สูง': 'sevHigh' };
+const STATUS_KEY = { 'ใหม่': 'statusNew', 'กำลังดำเนินการ': 'statusProgress', 'แก้ไขแล้ว': 'statusDone' };
+function trType(v){ const k = TYPE_KEY[v]; return k ? I18N[currentLang][k] : v; }
+function trSev(v){ const k = SEV_KEY[v]; return k ? I18N[currentLang][k] : v; }
+function trStatus(v){ const k = STATUS_KEY[v]; return k ? I18N[currentLang][k] : v; }
+
+function applyLang(){
+  const dict = I18N[currentLang];
+  document.documentElement.lang = currentLang;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if(dict[key] !== undefined) el.textContent = dict[key];
+  });
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === currentLang));
+  if(logLoaded) renderReports();
+}
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentLang = btn.dataset.lang;
+    localStorage.setItem('bugReportLang', currentLang);
+    applyLang();
+  });
+});
+
+const logView = document.getElementById('logView');
+const logFilter = document.getElementById('logFilter');
+const logCount = document.getElementById('logCount');
+const filterType = document.getElementById('filterType');
+const filterStatus = document.getElementById('filterStatus');
+let logLoaded = false;
+let allReports = [];
+
+async function loadLog() {
+  const dict = I18N[currentLang];
+  logView.innerHTML = `<div class="log-loading">${dict.logLoading}</div>`;
+  logFilter.style.display = 'none';
+  logCount.style.display = 'none';
+  try {
+    const res = await fetch(SCRIPT_URL, { method: 'GET' });
+    const result = await res.json();
+    if (!result.ok) throw new Error(result.error || dict.logFail);
+
+    logLoaded = true;
+    allReports = result.reports;
+
+    if (!allReports.length) {
+      logView.innerHTML = `<div class="log-empty">${dict.logEmpty}</div>`;
+      return;
+    }
+
+    logFilter.style.display = 'flex';
+    logCount.style.display = 'block';
+    renderReports();
+  } catch (err) {
+    logView.innerHTML = `<div class="log-empty">${dict.logFail}: ${escapeHtml(String(err))}</div>`;
+  }
+}
+
+function renderReports(){
+  const dict = I18N[currentLang];
+  if (!logLoaded) return;
+
+  const typeF = filterType.value;
+  const statusF = filterStatus.value;
+  const filtered = allReports.filter(r => {
+    if (typeF && r.type !== typeF) return false;
+    if (statusF && r.status !== statusF) return false;
+    return true;
+  });
+
+  logCount.textContent = dict.logCount(filtered.length, allReports.length);
+
+  if (!filtered.length) {
+    logView.innerHTML = `<div class="log-empty">${dict.logEmpty}</div>`;
+    return;
+  }
+
+  logView.innerHTML = filtered.map(r => `
+    <div class="log-item">
+      <div class="log-item-top">
+        <p class="log-item-title">${escapeHtml(r.title)}</p>
+      </div>
+      <div class="log-badges">
+        <span class="badge-pill badge-type">${escapeHtml(trType(r.type))}</span>
+        ${r.severity ? `<span class="badge-pill badge-sev-${escapeHtml(r.severity)}">${escapeHtml(trSev(r.severity))}</span>` : ''}
+        <span class="badge-pill badge-status" data-status="${escapeHtml(r.status)}">${escapeHtml(trStatus(r.status))}</span>
+      </div>
+      <p class="log-desc">${escapeHtml(r.description)}</p>
+      ${(r.images && r.images.length) ? `<div class="log-imgs">${r.images.map(img => img.imageUrl ? `<img class="log-img" src="${img.imageUrl}" alt="${escapeHtml(dict.imgLabel)}" loading="lazy" onclick="window.open('${img.driveLink}','_blank')">` : '').join('')}</div>` : ''}
+      <div class="log-meta">${escapeHtml(r.ticketId)} · ${escapeHtml(r.date)}${r.reporter ? ' · ' + escapeHtml(r.reporter) : ''}${r.url ? ' · ' + escapeHtml(r.url) : ''}</div>
+    </div>
+  `).join('');
+}
+
+filterType.addEventListener('change', renderReports);
+filterStatus.addEventListener('change', renderReports);
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : str;
+  return div.innerHTML;
+}
+
+applyLang();
+loadLog();
+</script>
+</body>
+</html>
