@@ -122,7 +122,10 @@
   }
   .icon-btn.danger{ border-color:var(--coral); color:var(--coral); }
   .icon-btn:hover{ background:var(--paper-2); }
-  .save-hint{ font-size:11px; color:var(--mint); font-weight:600; opacity:0; transition:opacity .2s; margin-left:4px; }
+  .save-hint{
+    font-size:12.5px; color:#0d4a37; font-weight:700; opacity:0; transition:opacity .2s;
+    margin-left:4px; background:var(--mint); padding:5px 12px; border-radius:20px;
+  }
   .save-hint.show{ opacity:1; }
 
   .empty{ text-align:center; padding:50px 20px; color:var(--ink-2); opacity:0.7; font-size:14px; }
@@ -173,7 +176,7 @@
 
 <script>
 // ==== ตั้งค่าตรงนี้: ใส่ URL เดียวกับที่ใช้ในหน้า report.html ====
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzuz7kt2Dibw7hYcy-FIWILAPVR1cuB9DpnX1m4T7BCAqIPRZb7FMRO42kVz7IEKI-0/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzLcM1qvtyK2v7fBV51EFRAhV4QTON08CXN0hFey9YO1QiaiMrGxvxzrtMiB0F6UEAt/exec";
 // =================================================================
 
 const I18N = {
@@ -186,9 +189,8 @@ const I18N = {
     searchPh: "ค้นหาหัวข้อ / เลขที่รายงาน", refreshBtn: "รีเฟรช",
     loading: "กำลังโหลด...", loadFail: "โหลดไม่สำเร็จ", noReports: "ไม่พบรายงาน",
     countLabel: (shown, total) => `แสดง ${shown} จาก ${total} รายการ`,
-    saved: "บันทึกแล้ว", deleteTitle: "ลบรายงานนี้",
-    saveFail: "บันทึกไม่สำเร็จ", deleteFail: "ลบไม่สำเร็จ",
-    deleteConfirm: (id) => `ลบรายงาน ${id} ใช่ไหม? การลบไม่สามารถกู้คืนได้`,
+    saved: "บันทึกแล้ว",
+    saveFail: "บันทึกไม่สำเร็จ",
     imgAlt: "ภาพที่แนบ"
   },
   ja: {
@@ -200,9 +202,8 @@ const I18N = {
     searchPh: "件名 / 報告番号で検索", refreshBtn: "更新",
     loading: "読み込み中...", loadFail: "読み込みに失敗しました", noReports: "報告が見つかりません",
     countLabel: (shown, total) => `${total}件中${shown}件を表示`,
-    saved: "保存しました", deleteTitle: "この報告を削除",
-    saveFail: "保存に失敗しました", deleteFail: "削除に失敗しました",
-    deleteConfirm: (id) => `報告 ${id} を削除しますか？元に戻せません。`,
+    saved: "保存しました",
+    saveFail: "保存に失敗しました",
     imgAlt: "添付画像"
   }
 };
@@ -315,7 +316,7 @@ function renderList(){
   }
 
   listView.innerHTML = filtered.map(r => `
-    <div class="card" data-ticket="${escapeHtml(r.ticketId)}">
+    <div class="card" data-ticket="${escapeHtml(r.ticketId)}" data-ref="${escapeHtml(r.systemRef || '')}">
       <div class="card-top">
         <p class="card-title">${escapeHtml(r.title)}</p>
       </div>
@@ -332,43 +333,28 @@ function renderList(){
           <option value="กำลังดำเนินการ" ${r.status === 'กำลังดำเนินการ' ? 'selected' : ''}>${dict.statusProgress}</option>
           <option value="แก้ไขแล้ว" ${r.status === 'แก้ไขแล้ว' ? 'selected' : ''}>${dict.statusDone}</option>
         </select>
-        <span class="save-hint">${dict.saved}</span>
-        <button class="icon-btn danger" title="${dict.deleteTitle}">✕</button>
+        <span class="save-hint">✓ ${dict.saved}</span>
       </div>
     </div>
   `).join('');
 
   listView.querySelectorAll('.card').forEach(card => {
     const ticketId = card.dataset.ticket;
+    const systemRef = card.dataset.ref;
     const select = card.querySelector('.status-select');
     const hint = card.querySelector('.save-hint');
-    const delBtn = card.querySelector('.icon-btn.danger');
 
     select.addEventListener('change', async () => {
       const d = I18N[currentLang];
       select.dataset.status = select.value;
       try{
-        await postAdmin({ action: 'update', ticketId: ticketId, status: select.value });
-        const rep = allReports.find(x => x.ticketId === ticketId);
+        await postAdmin({ action: 'update', ticketId: ticketId, systemRef: systemRef, status: select.value });
+        const rep = allReports.find(x => x.systemRef === systemRef || x.ticketId === ticketId);
         if(rep) rep.status = select.value;
         hint.classList.add('show');
-        setTimeout(() => hint.classList.remove('show'), 1500);
+        setTimeout(() => hint.classList.remove('show'), 2000);
       } catch(err){
         alert(d.saveFail + ': ' + err);
-      }
-    });
-
-    delBtn.addEventListener('click', async () => {
-      const d = I18N[currentLang];
-      if(!confirm(d.deleteConfirm(ticketId))) return;
-      delBtn.disabled = true;
-      try{
-        await postAdmin({ action: 'delete', ticketId: ticketId });
-        allReports = allReports.filter(x => x.ticketId !== ticketId);
-        renderList();
-      } catch(err){
-        alert(d.deleteFail + ': ' + err);
-        delBtn.disabled = false;
       }
     });
   });
